@@ -8,6 +8,18 @@ fn main() {
     println!("{:?}: {}", c3, cents(&c3));
     println!("{:?}: {}", c4, cents(&c4));
 
+    if let Coin::Quarter(state) = c3 {
+        println!("Quarter {:?}!!", state);
+    } else {
+        println!("Other!!");
+    }
+
+    if let Coin::Quarter(state) = c4 {
+        println!("Quarter {:?}!!", state);
+    } else {
+        println!("Other!!");
+    }
+
     println!("{:?}", incr(Some(1)));
     println!("{:?}", incr(None));
 }

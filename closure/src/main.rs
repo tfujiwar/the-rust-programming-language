@@ -4,8 +4,8 @@ use std::thread;
 use std::time::Duration;
 
 struct Cacher<T, U, V>
-    where T: Fn(U) -> V,
-          U: Copy + Eq + Hash,
+    where T: Fn(&U) -> V,
+          U: Eq + Hash,
           V: Copy,
 {
     calculation: T,
@@ -13,8 +13,8 @@ struct Cacher<T, U, V>
 }
 
 impl<T, U, V> Cacher<T, U, V>
-    where T: Fn(U) -> V,
-    U: Copy + std::cmp::Eq + std::hash::Hash,
+    where T: Fn(&U) -> V,
+    U: std::cmp::Eq + std::hash::Hash,
     V: Copy,
 {
     fn new(calculation: T) -> Cacher<T, U, V> {
@@ -28,7 +28,7 @@ impl<T, U, V> Cacher<T, U, V>
         match self.values.get(&arg) {
             Some(v) => *v,
             None => {
-                let v = (self.calculation)(arg);
+                let v = (self.calculation)(&arg);
                 self.values.insert(arg, v);
                 v
             }
@@ -37,16 +37,25 @@ impl<T, U, V> Cacher<T, U, V>
 }
 
 #[test]
-fn call_with_different_values() {
-    let mut c = Cacher::new(|a| a);
+fn call_with_int() {
+    let mut c = Cacher::new(|&a| a);
     let v1 = c.value(1);
     let v2 = c.value(2);
     assert_eq!(v1, 1);
     assert_eq!(v2, 2);
 }
 
+#[test]
+fn call_with_string() {
+    let mut c = Cacher::new(|a: &String| a.len());
+    let v1 = c.value(String::from("a"));
+    let v2 = c.value(String::from("abc"));
+    assert_eq!(v1, 1);
+    assert_eq!(v2, 3);
+}
+
 fn generate_workout(intensity: u32, random_number: u32) {
-    let mut expensive_calc = Cacher::new(|num| {
+    let mut expensive_calc = Cacher::new(|&num| {
         println!("calculating...");
         thread::sleep(Duration::from_secs(2));
         num
